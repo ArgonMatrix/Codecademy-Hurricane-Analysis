@@ -20,7 +20,7 @@ damages = ['Damages not recorded', '100M', 'Damages not recorded', '40M', '27.9M
 deaths = [90,4000,16,3103,179,184,408,682,5,1023,43,319,688,259,37,11,2068,269,318,107,65,19325,51,124,17,1836,125,87,45,133,603,138,3057,74]
 
 # 1. Update Recorded Damages
-# Convert values in 'damages' list to be represented as floats instead of as strings.
+# Function for converting values in 'damages' list to be represented as floats instead of as strings.
 def convert_damages(damages_list):
     updated_damages = []
     for damages_string in damages_list:
@@ -37,7 +37,11 @@ def convert_damages(damages_list):
     return updated_damages
 
 # Helper function to convert float values into more readable dollar value representations.
+# Returns non-float values unchanged.
 def dollarize(dollar_value):
+    if not isinstance(dollar_value, float):
+        return dollar_value
+
     dollars_and_cents = str(dollar_value).split('.')
     dollars = dollars_and_cents[0]
     cents = dollars_and_cents[1]
@@ -58,28 +62,88 @@ def dollarize(dollar_value):
 
 # Convert damages
 damages = convert_damages(damages)
-for value in damages:
-    if isinstance(value, float):
-        print(dollarize(value))
-    else:
-        print(value)
 
 
+# 2. Create Dictionary of Hurricanes
+# Function that combines lists of relevant hurricane data into a dictionary. Keys are hurricane names as strings, values are dictionaries containing the remaining data.
+def create_dictionary(names, months, years, winds, areas, damages, deaths):
+    hurricane_dict = {}
+    for index in range(len(names)):
+        hurricane_dict[names[index]] = {
+            "Name": names[index],
+            "Month": months[index],
+            "Year": years[index],
+            "Max Sustained Wind": winds[index],
+            "Areas Affected": areas[index],
+            "Damages": damages[index],
+            "Deaths": deaths[index]
+        }
+    
+    return hurricane_dict
 
-# write your construct hurricane dictionary function here:
+# Call function on given data
+hurricanes = create_dictionary(names, months, years, max_sustained_winds, areas_affected, damages, deaths)
+# Print data in a readable manner
+for (name, info) in hurricanes.items():
+    blurb = \
+"""Hurricane {name}
+-----------------------
+Date: {month}, {year}
+Maximum Sustained Wind Speed: {wind} MPH
+Areas Affected: {areas}
+Damages (USD): {damages}
+Total Deaths: {deaths}
+        """.format(
+            name=name,
+            month=info["Month"],
+            year=info["Year"],
+            wind=info["Max Sustained Wind"],
+            areas=', '.join(info["Areas Affected"]),
+            damages=dollarize(info["Damages"]),
+            deaths=info["Deaths"]
+        )
+    print(blurb)
+
+# Helper function for printing a visual buffer between sections of information
+def print_buffer(buffer_string, line_count):
+    for i in range(line_count):
+        print(buffer_string)
+    print('')
+# Function call
+buffer_line = "**********************************"
+print_buffer(buffer_line, 2)
 
 
+# 3. Hurricanes by Year
+# Function to convert existing hurricanes dictionary to be sorted by year.
+def sort_by_year(hurricane_dict):
+    sorted_hurricanes = {}
+    for info in hurricane_dict.values():
+        year = info["Year"]
+        # Check if the year exists in the dictionary already.
+        if year in sorted_hurricanes:
+            sorted_hurricanes[year].append(info)
+        else:
+            sorted_hurricanes[year] = [info]
+    
+    return sorted_hurricanes
 
+# Apply Function & Print Data
+hurricanes_by_year = sort_by_year(hurricanes)
+for (year, hurricane_list) in hurricanes_by_year.items():
+    names = [info["Name"] for info in hurricane_list]
+    blurb = \
+"""{year} Hurricanes
+-----------------------
+{names}
+""".format(
+    year=year,
+    names=', '.join(names)
+)
+    print(blurb)
 
-
-
-
-# write your construct hurricane by year dictionary function here:
-
-
-
-
-
+# Print buffer
+print_buffer(buffer_line, 2)
 
 
 # write your count affected areas function here:
