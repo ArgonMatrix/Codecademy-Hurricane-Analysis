@@ -19,11 +19,50 @@ damages = ['Damages not recorded', '100M', 'Damages not recorded', '40M', '27.9M
 # deaths for each hurricane
 deaths = [90,4000,16,3103,179,184,408,682,5,1023,43,319,688,259,37,11,2068,269,318,107,65,19325,51,124,17,1836,125,87,45,133,603,138,3057,74]
 
-# write your update damages function here:
+# 1. Update Recorded Damages
+# Convert values in 'damages' list to be represented as floats instead of as strings.
+def convert_damages(damages_list):
+    updated_damages = []
+    for damages_string in damages_list:
+        final_char = damages_string[-1]
+        dollar_value = damages_string
 
+        if final_char == 'M':
+            dollar_value = float(damages_string[:-1]) * (10**6)
+        elif final_char == 'B':
+            dollar_value = float(damages_string[:-1]) * (10**9)
+        
+        updated_damages.append(dollar_value)
+    
+    return updated_damages
 
+# Helper function to convert float values into more readable dollar value representations.
+def dollarize(dollar_value):
+    dollars_and_cents = str(dollar_value).split('.')
+    dollars = dollars_and_cents[0]
+    cents = dollars_and_cents[1]
 
+    if len(cents) < 2:
+        cents += '0' # Add trailing 0 to make the value more readable as money.
+    if len(dollars) > 3:
+        fragments = [] # List for holding 'parts' of the dollar value to be joined by commas later.
+        remaining_digits = dollars
+        while len(remaining_digits) > 3:
+            fragments.insert(0, remaining_digits[-3:])
+            remaining_digits = remaining_digits[:-3]
+        fragments.insert(0, remaining_digits)
 
+        dollars = ','.join(fragments)
+    
+    return '$' + dollars + '.' + cents
+
+# Convert damages
+damages = convert_damages(damages)
+for value in damages:
+    if isinstance(value, float):
+        print(dollarize(value))
+    else:
+        print(value)
 
 
 
