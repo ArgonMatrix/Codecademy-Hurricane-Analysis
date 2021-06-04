@@ -146,44 +146,236 @@ for (year, hurricane_list) in hurricanes_by_year.items():
 print_buffer(buffer_line, 2)
 
 
-# write your count affected areas function here:
+# 4. Counting Affected Areas
+# Function to take hurricanes dictionary and count how many times each listed area has been affected.
+# Returns a dictionary where the keys are strings representing affected areas and the values are integers representing how many times they appear in the hurricanes dictionary.
+def count_areas(hurricane_dict):
+    area_dict = {}
+    for info in hurricane_dict.values():
+        for area in info["Areas Affected"]:
+            if area in area_dict:
+                area_dict[area] += 1
+            else:
+                area_dict[area] = 1
+    
+    return area_dict
+
+# Apply Function & Print Data
+areas_by_count = count_areas(hurricanes)
+for (area, count) in areas_by_count.items():
+    print("The area of {area} has been struck by a total of {count} category five hurricanes.".format(area=area, count=count))
+
+# Print Buffer
+print('')
+print_buffer(buffer_line, 2)
 
 
+# 5. Find Most Affected Areas
+# Function that takes the dictionary of affected areas by count and determines the area that has been struck most often.
+# Returns a dictionary containing a list of areas tied for the most hurricanes (list has only one element if there are no ties) and the count for how many times those areas
+# were struck.
+def find_most_affected_areas(area_dict):
+    area_list = []
+    max_count = 0
+    for (area, count) in area_dict.items():
+        if count > max_count:
+            area_list = [area]
+            max_count = count
+        elif count == max_count:
+            area_list.append(area)
+    
+    return {"Areas": area_list, "Count": max_count}
+
+# Apply the function & print the results.
+most_affected_areas = find_most_affected_areas(areas_by_count)
+if len(most_affected_areas["Areas"]) > 1:
+    print("The areas that have been most affected by category five hurricanes, having been struck by {count} in total, are {areas} and {final_area}.".format(
+        count=most_affected_areas["Count"],
+        areas=', '.join(most_affected_areas["Areas"][:-1]),
+        final_area=most_affected_areas["Areas"][-1]
+    ))
+else:
+    print("The area most affected by category five hurricanes, having been struck by {count} in total, is {area}.".format(
+        count=most_affected_areas["Count"],
+        area=most_affected_areas["Areas"][0]
+    ))
+
+# 6. Find the Deadliest Hurricane
+# Function that searches the hurricanes dictionary for the highest number of deaths. Returns a dictionary containing a list of hurricanes tied for the most deaths (list will contain
+# only one element if there are no ties) and the count for how many deaths those hurricanes each caused.
+def find_deadliest_hurricanes(hurricane_dict):
+    hurricane_list = []
+    max_deaths = 0
+    for info in hurricane_dict.values():
+        hurricane = info["Name"]
+        death_count = info["Deaths"]
+        if death_count > max_deaths:
+            hurricane_list = [hurricane]
+            max_deaths = death_count
+        elif death_count == max_deaths:
+            hurricane_list.append(hurricane)
+    
+    return {"Hurricanes": hurricane_list, "Deaths": max_deaths}
+
+# Apply the function & print the results
+deadliest_hurricanes = find_deadliest_hurricanes(hurricanes)
+if len(deadliest_hurricanes["Hurricanes"]) > 1:
+    print("The deadliest category five hurricanes, having each caused {deaths} deaths, were Hurricane {hurricanes} and Hurricane {final_hurricane}.".format(
+        deaths=deadliest_hurricanes["Deaths"],
+        hurricanes=', Hurricane '.join(deadliest_hurricanes["Hurricanes"][:-1]),
+        final_hurricane=deadliest_hurricanes["Hurricanes"][-1]
+    ))
+else:
+    print("The deadliest category five hurricane, having caused a total of {deaths} deaths, was Hurricane {hurricane}.".format(
+        deaths=deadliest_hurricanes["Deaths"],
+        hurricane=deadliest_hurricanes["Hurricanes"][0]
+    ))
 
 
+# 7. Find the Costliest Hurricane
+# Function to search the dictionary of hurricanes for the one that caused the highest dollar value of damages. Returns a dictionary containing a list of costliest hurricanes
+# (list will contain only one element if there are no ties) as well as a float representing the dollar value of the damages caused.
+def find_costliest_hurricanes(hurricane_dict):
+    hurricane_list = []
+    max_cost = 0
+    for info in hurricane_dict.values():
+        hurricane = info["Name"]
+        cost = info["Damages"]
+        # Check to confirm the cost is a float instead of "Damages not recorded."
+        if not isinstance(cost, float):
+            continue
+
+        if cost > max_cost:
+            hurricane_list = [hurricane]
+            max_cost = cost
+        elif cost == max_cost:
+            hurricane_list.append(hurricane)
+    
+    return {"Hurricanes": hurricane_list, "Damages": max_cost}
+
+# Apply the function & print the results
+costliest_hurricanes = find_costliest_hurricanes(hurricanes)
+if len(costliest_hurricanes["Hurricanes"]) > 1:
+    print("The category five hurricanes that caused the most damage, each having caused approximately {damages} in damages, were Hurricane {hurricanes} and Hurricane {final_hurricane}.".format(
+        damages=dollarize(costliest_hurricanes["Damages"]),
+        hurricanes=', Hurricane '.join(costliest_hurricanes["Hurricanes"][:-1]),
+        final_hurricane=costliest_hurricanes["Hurricanes"][-1]
+    ))
+else:
+    print("The category five hurricane that caused the most damage, having resulted in {damages} in damages, was Hurricane {hurricane}.".format(
+        damages=dollarize(costliest_hurricanes["Damages"]),
+        hurricane=costliest_hurricanes["Hurricanes"][0]
+    ))
+
+# Print Buffer + Extra New Line
+print('')
+print_buffer(buffer_line, 2)
 
 
+# 8. Categorize Hurricanes by Mortality
+# Mortality Scale: Used to rate hurricanes based on how many deaths they caused. The values of the dictionary are the upper threshold for that specific index of the scale.
+# Hurricanes that cause more deaths than the upper threshold for index 4 will be categorized as index 5.
+mortality_scale = {
+    0: 0,
+    1: 100,
+    2: 500,
+    3: 1000,
+    4: 10000
+}
+# Function that takes the info for an individual hurricane and returns a mortality rating based on the number of deaths it caused.
+def find_mortality_rating(hurricane_info):
+    # Default rating to five, then compare deaths to thresholds to determine whether the rating should be lowered.
+    mortality_index = 5
+    deaths = hurricane_info["Deaths"]
+    for (index, threshold) in mortality_scale.items():
+        if deaths <= threshold:
+            mortality_index = index
+            break
+    
+    return mortality_index
 
-# write your find most affected area function here:
+# Use function to create a new dictionary of hurricanes sorted by mortality rating.
+hurricanes_by_mortality = {0: [], 1: [], 2: [], 3: [], 4: [], 5: []}
+for info in hurricanes.values():
+    mortality_rating = find_mortality_rating(info)
+    hurricanes_by_mortality[mortality_rating].append(info)
+
+# Helper function to combine a list of hurricane names into a single string, returning default text if the list is empty.
+def stringify(hurricane_list):
+        if len(hurricane_list) > 0:
+            hurricane_names = [info["Name"] for info in hurricane_list]
+            return ', '.join(hurricane_names)
+        else:
+            return "There are no category five hurricanes that match this rating."
+
+# Print & present the data
+mini_buffer = "-------------------------------------"
+for (index, hurricane_list) in hurricanes_by_mortality.items():
+    if index == 0:
+        print("Mortality Rating 0 Hurricanes ({} Deaths)".format(mortality_scale[0]))
+    elif index < 5:
+        print("Mortality Rating {rating} Hurricanes ({lower_bound}-{upper_bound} Deaths)".format(
+            rating=index,
+            lower_bound=mortality_scale[index-1] + 1,
+            upper_bound=mortality_scale[index]
+        ))
+    else:
+        print("Mortality Rating 5 Hurricanes ({}+ Deaths)".format(mortality_scale[4] + 1))
+    print(mini_buffer)
+    print(stringify(hurricane_list))
+    print('')
+
+# Print Buffer
+print_buffer(buffer_line, 2)
 
 
+# 9. Categorize Hurricanes by Damages
+# Damage Scale: Rates hurricanes based on the dollar value of the damages they caused (in USD). The values of the dictionary are the upper thresholds for that index of the scale.
+# Hurricanes that caused more damage than the upper threshold for index 4 will be categorized as index 5.
+# Hurricanes for which the damages weren't recorded will have a damage rating of "Unknown"
+damage_scale = {
+    0: 0.0,
+    1: 100000000.0,
+    2: 1000000000.0,
+    3: 10000000000.0,
+    4: 50000000000.0
+}
+# Function that returns a damage rating for a particular hurricane based on the dollar value of damages it caused.
+def find_damage_rating(hurricane_info):
+    damage_value = hurricane_info["Damages"]
+    # Check whether the damage value is a float or not.
+    if not isinstance(damage_value, float):
+        return "Unknown"
+    
+    # Default rating to 5, then lower it based on whether it meets the various thresholds.
+    damage_index = 5
+    for (index, value) in damage_scale.items():
+        if damage_value <= value:
+            damage_index = index
+            break
+    
+    return damage_index
 
+# Use function to sort hurricanes by damage rating
+hurricanes_by_damages = {0: [], 1: [], 2: [], 3: [], 4: [], 5:[], "Unknown": []}
+for info in hurricanes.values():
+    damage_rating = find_damage_rating(info)
+    hurricanes_by_damages[damage_rating].append(info)
 
-
-
-
-# write your greatest number of deaths function here:
-
-
-
-
-
-
-
-# write your catgeorize by mortality function here:
-
-
-
-
-
-
-
-# write your greatest damage function here:
-
-
-
-
-
-
-
-# write your catgeorize by damage function here:
+# Print & present the data
+for (index, hurricane_list) in hurricanes_by_damages.items():
+    if index == "Unknown":
+        print("Hurricanes with Unknown or Unrecorded Damages")
+    elif index == 0:
+        print("Damage Rating 0 Hurricanes (USD {} in Damages)".format(dollarize(damage_scale[0])))
+    elif index < 5:
+        print("Damage Rating {rating} Hurricanes (USD {lower_bound}-{upper_bound} in Damages)".format(
+            rating=index,
+            lower_bound=dollarize(damage_scale[index-1] + 0.01),
+            upper_bound=dollarize(damage_scale[index])
+        ))
+    else:
+        print("Damage Rating 5 Hurricanes (USD {}+ in Damages)".format(dollarize(damage_scale[4] + 0.01)))
+    print(mini_buffer)
+    print(stringify(hurricane_list))
+    print('')
